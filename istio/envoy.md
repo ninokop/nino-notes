@@ -2,8 +2,6 @@
 
 本文转自[初战Envoy](https://github.com/imjoey/blog/issues/26)，外加自己实践理解。
 
-https://www.envoyproxy.io/docs/envoy/v1.5.0/api-v1/listeners/listeners#config-listener-filters
-
 ### Envoy配置
 
 Envoy有两种启动模式，SideCar模式和类似API GateWay的部署模式。
@@ -21,12 +19,6 @@ CMD /usr/local/bin/envoy -c /etc/front-envoy.json --service-cluster front-proxy
 `listeners`表示envoy的监听器对象，一个 Envoy 进程（部署实例）可包含多个监听器，目前仅支持 TCP 类型的监听器。每个 listener 都可配置若干 filter。listener 配置可从远端的 LDS 服务获取。`filters`是必填项，
 
 `admin`表示可以通过8001端口查看envoy本身的信息。
-
-`cluster_manager`表示这个APIGrateWay后端的所有集群信息，就是后端所有Upstream服务信息，它可以通过CDSAPI从istio管理面获得。clusters填的是集群列表。
-
-1. type字段表示集群内部所有Host的发现方式，支持static静态IP、strict_dns、logical_dns、original_ds或者外接SDS通过API去做集群内主机发现。
-2. lbtype是指集群内的负载均衡策略，支持round_robin、least_request、ringhash、random这几种。
-3. hosts是集群内的主机列表。
 
 ```json
 {
@@ -122,3 +114,10 @@ CMD /usr/local/bin/envoy -c /etc/front-envoy.json --service-cluster front-proxy
 }}
 ```
 
+`cluster_manager`表示这个APIGrateWay后端的所有集群信息，就是后端所有Upstream服务信息，它可以通过CDSAPI从istio管理面获得。clusters填的是集群列表。
+
+1. type字段表示集群内部所有Host的发现方式，支持static静态IP、strict_dns、logical_dns、original_ds或者外接SDS通过API去做集群内主机发现。
+2. lbtype是指集群内的负载均衡策略，支持round_robin、least_request、ringhash、random这几种。
+3. hosts是访问集群的url。
+
+> **个人理解**：cluster的含义是这个集群可能包含多个提供服务的应用，比如bookinfo这个示例中，reviews就是个集群，而它包含的三个版本不同的Deployment分别是集群内 对外提供服务的Upstream。通过集群hosts字段的url访问集群，就能按照lb策略访问到不同的Upstream。
